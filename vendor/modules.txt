@@ -1,3 +1,6 @@
+# github.com/AlexsJones/go-type-registry v0.0.0-20170418143821-2eaa9cd108ee
+## explicit
+github.com/AlexsJones/go-type-registry/core
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -119,7 +122,6 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/d4l3k/messagediff.v1 v1.2.1
 ## explicit
-gopkg.in/d4l3k/messagediff.v1
 # gopkg.in/inf.v0 v0.9.1
 ## explicit
 gopkg.in/inf.v0

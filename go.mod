@@ -3,7 +3,7 @@ module kwatch
 go 1.17
 
 require (
-	gopkg.in/d4l3k/messagediff.v1 v1.2.1
+	github.com/AlexsJones/go-type-registry v0.0.0-20170418143821-2eaa9cd108ee
 	k8s.io/api v0.22.4
 	k8s.io/apimachinery v0.22.4
 	k8s.io/client-go v0.22.4
@@ -31,6 +31,7 @@ require (
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
+	gopkg.in/d4l3k/messagediff.v1 v1.2.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
