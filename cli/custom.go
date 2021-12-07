@@ -5,8 +5,6 @@ import (
 	"fmt"
 	msg "kwatch/msgdiff"
 
-	reg "github.com/AlexsJones/go-type-registry/core"
-
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -24,24 +22,29 @@ func (k *KubeWatch) GetPods() *v1.PodList {
 	return pods
 }
 
-func generateRegistry(r *reg.Registry) error {
-	r.Put(&v1.Pod{})
-	return nil
-}
-
 func (k *KubeWatch) DiffItems() {
 
 	diff, equal := msg.PrettyDiff(k.Items, k.GetItems())
-	d, _ := msg.PrettyDiff(k.GetItems(), k.Items)
+
 	if !equal {
-		for _, i := range d {
-			fmt.Printf(i)
-		}
 		for _, i := range diff {
-			fmt.Printf(i)
+			Output(i)
 		}
 	}
 	fmt.Println("----------")
 	fmt.Println()
 	k.SetItems()
+}
+
+func Output(i map[string]interface{}) {
+	for k, v := range i {
+		switch k {
+		case "removed":
+			fmt.Printf("\tremoved pod: %s\n", v.(v1.Pod).Name)
+		case "added":
+			fmt.Printf("\tadded pod: %s\n", v.(v1.Pod).Name)
+		case "modified":
+			fmt.Printf("\tmodified : %+v\n", v)
+		}
+	}
 }

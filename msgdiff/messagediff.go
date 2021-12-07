@@ -3,25 +3,29 @@ package messagediff
 import (
 	"fmt"
 	"reflect"
-	"sort"
 	"unsafe"
 )
 
 // PrettyDiff does a deep comparison and returns the nicely formated results.
-func PrettyDiff(a, b interface{}) ([]string, bool) {
+func PrettyDiff(a, b interface{}) ([]map[string]interface{}, bool) {
 	d, equal := DeepDiff(a, b)
-	var dstr []string
-	for path, added := range d.Added {
+	var dstr []map[string]interface{}
+	for _, added := range d.Added {
+		var dst = make(map[string]interface{}, 3)
+		dst["added"] = added
+		dstr = append(dstr, dst)
+	}
+	for _, removed := range d.Removed {
+		var dst = make(map[string]interface{}, 3)
+		dst["removed"] = removed
+		dstr = append(dstr, dst)
 
-		dstr = append(dstr, fmt.Sprintf("added: %s = %#v\n", path.String(), added))
 	}
-	for path, removed := range d.Removed {
-		dstr = append(dstr, fmt.Sprintf("removed: %s = %#v\n", path.String(), removed))
+	for _, modified := range d.Modified {
+		var dst = make(map[string]interface{}, 3)
+		dst["modified"] = modified
+		dstr = append(dstr, dst)
 	}
-	for path, modified := range d.Modified {
-		dstr = append(dstr, fmt.Sprintf("modified: %s = %#v\n", path.String(), modified))
-	}
-	sort.Strings(dstr)
 	return dstr, equal
 }
 
