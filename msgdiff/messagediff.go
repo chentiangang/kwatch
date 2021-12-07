@@ -21,9 +21,9 @@ func PrettyDiff(a, b interface{}) ([]map[string]interface{}, bool) {
 		dstr = append(dstr, dst)
 
 	}
-	for _, modified := range d.Modified {
+	for path, modified := range d.Modified {
 		var dst = make(map[string]interface{}, 3)
-		dst["modified"] = modified
+		dst["modified"] = fmt.Sprintf("%s = %#v\n", path.String(), modified)
 		dstr = append(dstr, dst)
 	}
 	return dstr, equal

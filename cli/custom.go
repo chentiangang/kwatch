@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	msg "kwatch/msgdiff"
+	"strings"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,12 +24,10 @@ func (k *KubeWatch) GetPods() *v1.PodList {
 }
 
 func (k *KubeWatch) DiffItems() {
-
 	diff, equal := msg.PrettyDiff(k.Items, k.GetItems())
-
 	if !equal {
 		for _, i := range diff {
-			Output(i)
+			k.Print(i)
 		}
 	}
 	fmt.Println("----------")
@@ -36,15 +35,37 @@ func (k *KubeWatch) DiffItems() {
 	k.SetItems()
 }
 
-func Output(i map[string]interface{}) {
-	for k, v := range i {
-		switch k {
+func (k *KubeWatch) Print(i map[string]interface{}) {
+	for key, value := range i {
+		switch key {
 		case "removed":
-			fmt.Printf("\tremoved pod: %s\n", v.(v1.Pod).Name)
+			fmt.Printf("\tremoved pod: %s\n", value.(v1.Pod).Name)
 		case "added":
-			fmt.Printf("\tadded pod: %s\n", v.(v1.Pod).Name)
+			fmt.Printf("\tadded pod: %s\n", value.(v1.Pod).Name)
 		case "modified":
-			fmt.Printf("\tmodified : %+v\n", v)
+			vKey, vValue := GetModifiedKeyValue(value)
+			d, _ := msg.PrettyDiff(k.GetItems(), k.Items)
+			for _, j := range d {
+				for Key, Value := range j {
+					if Key == "modified" {
+						dKey, dValue := GetModifiedKeyValue(Value)
+						if dKey == vKey {
+							fmt.Printf("\tmodified: %s %s ==> %s\n", vKey, dValue, vValue)
+						}
+					}
+				}
+			}
 		}
 	}
+}
+
+func TrimFunc(s string) string {
+	return strings.TrimFunc(s, func(r rune) bool {
+		return r == '\n' || r == ' '
+	})
+}
+
+func GetModifiedKeyValue(s interface{}) (key, value string) {
+	vSplit := strings.Split(s.(string), "=")
+	return TrimFunc(vSplit[0]), TrimFunc(vSplit[1])
 }
