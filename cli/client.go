@@ -20,7 +20,6 @@ type KubeWatch struct {
 	queue     workqueue.RateLimitingInterface
 	informer  cache.Controller
 	clientSet *kubernetes.Clientset
-	Items     []v1.Pod
 	Pods      []Pod
 	Events    chan Events
 }
