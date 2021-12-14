@@ -2500,23 +2500,23 @@ type ContainerStatus struct {
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Details about the container's current condition.
 	// +optional
-	State ContainerState `json:"state,omitempty" protobuf:"bytes,2,opt,name=state"testdiff:"ignore"`
+	State ContainerState `json:"state,omitempty" protobuf:"bytes,2,opt,name=state"`
 	// Details about the container's last termination condition.
 	// +optional
-	LastTerminationState ContainerState `json:"lastState,omitempty" protobuf:"bytes,3,opt,name=lastState"testdiff:"ignore"`
+	LastTerminationState ContainerState `json:"lastState,omitempty" protobuf:"bytes,3,opt,name=lastState"`
 	// Specifies whether the container has passed its readiness probe.
-	Ready bool `json:"ready" protobuf:"varint,4,opt,name=ready"testdiff:"ignore"`
+	Ready bool `json:"ready" protobuf:"varint,4,opt,name=ready"`
 	// The number of times the container has been restarted, currently based on
 	// the number of dead containers that have not yet been removed.
 	// Note that this is calculated from dead containers. But those containers are subject to
 	// garbage collection. This value will get capped at 5 by GC.
-	RestartCount int32 `json:"restartCount" protobuf:"varint,5,opt,name=restartCount"testdiff:"ignore"`
+	RestartCount int32 `json:"restartCount" protobuf:"varint,5,opt,name=restartCount"`
 	// The image the container is running.
 	// More info: https://kubernetes.io/docs/concepts/containers/images
 	// TODO(dchen1107): Which image the container is running with?
-	Image string `json:"image" protobuf:"bytes,6,opt,name=image"testdiff:"ignore"`
+	Image string `json:"image" protobuf:"bytes,6,opt,name=image"`
 	// ImageID of the container's image.
-	ImageID string `json:"imageID" protobuf:"bytes,7,opt,name=imageID"testdiff:"ignore"`
+	ImageID string `json:"imageID" protobuf:"bytes,7,opt,name=imageID"`
 	// Container's ID in the format 'docker://<container_id>'.
 	// +optional
 	ContainerID string `json:"containerID,omitempty" protobuf:"bytes,8,opt,name=containerID"`
@@ -2525,7 +2525,7 @@ type ContainerStatus struct {
 	// Resets to false when the container is restarted, or if kubelet loses state temporarily.
 	// Is always true when no startupProbe is defined.
 	// +optional
-	Started *bool `json:"started,omitempty" protobuf:"varint,9,opt,name=started"testdiff:"ignore"`
+	Started *bool `json:"started,omitempty" protobuf:"varint,9,opt,name=started"`
 }
 
 // PodPhase is a label for the condition of a pod at the current time.
@@ -3632,14 +3632,14 @@ type PodStatus struct {
 	// +optional
 	// +patchMergeKey=type
 	// +patchStrategy=merge
-	Conditions []PodCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,2,rep,name=conditions"testdiff:"ignore"`
+	Conditions []PodCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,2,rep,name=conditions"`
 	// A human readable message indicating details about why the pod is in this condition.
 	// +optional
-	Message string `json:"message,omitempty" protobuf:"bytes,3,opt,name=message"testdiff:"ignore"`
+	Message string `json:"message,omitempty" protobuf:"bytes,3,opt,name=message"`
 	// A brief CamelCase message indicating details about why the pod is in this state.
 	// e.g. 'Evicted'
 	// +optional
-	Reason string `json:"reason,omitempty" protobuf:"bytes,4,opt,name=reason"testdiff:"ignore"`
+	Reason string `json:"reason,omitempty" protobuf:"bytes,4,opt,name=reason"`
 	// nominatedNodeName is set only when this pod preempts other pods on the node, but it cannot be
 	// scheduled right away as preemption victims receive their graceful termination periods.
 	// This field does not guarantee that the pod will be scheduled on this node. Scheduler may decide
@@ -3648,15 +3648,15 @@ type PodStatus struct {
 	// As a result, this field may be different than PodSpec.nodeName when the pod is
 	// scheduled.
 	// +optional
-	NominatedNodeName string `json:"nominatedNodeName,omitempty" protobuf:"bytes,11,opt,name=nominatedNodeName"testdiff:"ignore"`
+	NominatedNodeName string `json:"nominatedNodeName,omitempty" protobuf:"bytes,11,opt,name=nominatedNodeName"`
 
 	// IP address of the host to which the pod is assigned. Empty if not yet scheduled.
 	// +optional
-	HostIP string `json:"hostIP,omitempty" protobuf:"bytes,5,opt,name=hostIP"testdiff:"ignore"`
+	HostIP string `json:"hostIP,omitempty" protobuf:"bytes,5,opt,name=hostIP"`
 	// IP address allocated to the pod. Routable at least within the cluster.
 	// Empty if not yet allocated.
 	// +optional
-	PodIP string `json:"podIP,omitempty" protobuf:"bytes,6,opt,name=podIP"testdiff:"ignore"`
+	PodIP string `json:"podIP,omitempty" protobuf:"bytes,6,opt,name=podIP"`
 
 	// podIPs holds the IP addresses allocated to the pod. If this field is specified, the 0th entry must
 	// match the podIP field. Pods may be allocated at most 1 value for each of IPv4 and IPv6. This list
@@ -3664,18 +3664,18 @@ type PodStatus struct {
 	// +optional
 	// +patchStrategy=merge
 	// +patchMergeKey=ip
-	PodIPs []PodIP `json:"podIPs,omitempty" protobuf:"bytes,12,rep,name=podIPs" patchStrategy:"merge" patchMergeKey:"ip"testdiff:"ignore"`
+	PodIPs []PodIP `json:"podIPs,omitempty" protobuf:"bytes,12,rep,name=podIPs" patchStrategy:"merge" patchMergeKey:"ip"`
 
 	// RFC 3339 date and time at which the object was acknowledged by the Kubelet.
 	// This is before the Kubelet pulled the container image(s) for the pod.
 	// +optional
-	StartTime *metav1.Time `json:"startTime,omitempty" protobuf:"bytes,7,opt,name=startTime"testdiff:"ignore"`
+	StartTime *metav1.Time `json:"startTime,omitempty" protobuf:"bytes,7,opt,name=startTime"`
 
 	// The list has one entry per init container in the manifest. The most recent successful
 	// init container will have ready = true, the most recently started container will have
 	// startTime set.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status
-	InitContainerStatuses []ContainerStatus `json:"initContainerStatuses,omitempty" protobuf:"bytes,10,rep,name=initContainerStatuses"testdiff:"ignore"`
+	InitContainerStatuses []ContainerStatus `json:"initContainerStatuses,omitempty" protobuf:"bytes,10,rep,name=initContainerStatuses"`
 
 	// The list has one entry per container in the manifest. Each entry is currently the output
 	// of `docker inspect`.
@@ -3686,11 +3686,11 @@ type PodStatus struct {
 	// See PodQOSClass type for available QOS classes
 	// More info: https://git.k8s.io/community/contributors/design-proposals/node/resource-qos.md
 	// +optional
-	QOSClass PodQOSClass `json:"qosClass,omitempty" protobuf:"bytes,9,rep,name=qosClass"testdiff:"ignore"`
+	QOSClass PodQOSClass `json:"qosClass,omitempty" protobuf:"bytes,9,rep,name=qosClass"`
 	// Status for any ephemeral containers that have run in this pod.
 	// This field is alpha-level and is only populated by servers that enable the EphemeralContainers feature.
 	// +optional
-	EphemeralContainerStatuses []ContainerStatus `json:"ephemeralContainerStatuses,omitempty" protobuf:"bytes,13,rep,name=ephemeralContainerStatuses"testdiff:"ignore"`
+	EphemeralContainerStatuses []ContainerStatus `json:"ephemeralContainerStatuses,omitempty" protobuf:"bytes,13,rep,name=ephemeralContainerStatuses"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -3727,7 +3727,7 @@ type Pod struct {
 	// Specification of the desired behavior of the pod.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 	// +optional
-	Spec PodSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"testdiff:"ignore"`
+	Spec PodSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	// Most recently observed status of the pod.
 	// This data may not be up to date.

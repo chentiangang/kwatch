@@ -6,12 +6,13 @@ import (
 
 func main() {
 	kubewatch := cli.NewClient()
-	kubewatch.SetItems()
+	kubewatch.SetPods()
 	// Now let's start the controller
 	stop := make(chan struct{})
 	defer close(stop)
 	go kubewatch.Run(1, stop)
 
-	// Wait forever
+	go kubewatch.Parse()
+
 	select {}
 }

@@ -3,7 +3,7 @@ module kwatch
 go 1.17
 
 require (
-	github.com/AlexsJones/go-type-registry v0.0.0-20170418143821-2eaa9cd108ee
+	github.com/chentiangang/xlog v0.0.0-20210203034958-c6b28d65a157
 	k8s.io/api v0.22.4
 	k8s.io/apimachinery v0.22.4
 	k8s.io/client-go v0.22.4
@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/AlexsJones/go-type-registry v0.0.0-20170418143821-2eaa9cd108ee // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect

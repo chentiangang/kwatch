@@ -1,6 +1,8 @@
 # github.com/AlexsJones/go-type-registry v0.0.0-20170418143821-2eaa9cd108ee
 ## explicit
-github.com/AlexsJones/go-type-registry/core
+# github.com/chentiangang/xlog v0.0.0-20210203034958-c6b28d65a157
+## explicit; go 1.15
+github.com/chentiangang/xlog
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew

@@ -3,48 +3,63 @@ package messagediff
 import (
 	"fmt"
 	"reflect"
+	"time"
 	"unsafe"
 )
 
 // PrettyDiff does a deep comparison and returns the nicely formated results.
-func PrettyDiff(a, b interface{}) ([]map[string]interface{}, bool) {
-	d, equal := DeepDiff(a, b)
+// See DeepDiff for more details.
+
+func PrettyDiff(a, b interface{}, options ...Option) ([]map[string]interface{}, bool) {
+	d, equal := DeepDiff(a, b, options...)
 	var dstr []map[string]interface{}
 	for _, added := range d.Added {
 		var dst = make(map[string]interface{}, 3)
+		//dst["added"] = fmt.Sprintf("%s = %#v\n", path.String(), added)
 		dst["added"] = added
 		dstr = append(dstr, dst)
 	}
 	for _, removed := range d.Removed {
 		var dst = make(map[string]interface{}, 3)
+		//dst["removed"] = fmt.Sprintf("%s = %#v\n", path.String(), removed)
 		dst["removed"] = removed
 		dstr = append(dstr, dst)
-
 	}
 	for path, modified := range d.Modified {
 		var dst = make(map[string]interface{}, 3)
-		dst["modified"] = fmt.Sprintf("%s = %#v\n", path.String(), modified)
+		dst["modified"] = fmt.Sprintf("%s = %#v\n", path.String(), modified.New)
 		dstr = append(dstr, dst)
 	}
 	return dstr, equal
 }
 
 // DeepDiff does a deep comparison and returns the results.
-func DeepDiff(a, b interface{}) (*Diff, bool) {
+// If the field is time.Time, use Equal to compare
+func DeepDiff(a, b interface{}, options ...Option) (*Diff, bool) {
 	d := newDiff()
-	return d, d.diff(reflect.ValueOf(a), reflect.ValueOf(b), nil)
+	opts := &opts{}
+	for _, o := range options {
+		o.apply(opts)
+	}
+	return d, d.diff(reflect.ValueOf(a), reflect.ValueOf(b), nil, opts)
 }
 
 func newDiff() *Diff {
 	return &Diff{
 		Added:    make(map[*Path]interface{}),
 		Removed:  make(map[*Path]interface{}),
-		Modified: make(map[*Path]interface{}),
+		Modified: make(map[*Path]Update),
 		visited:  make(map[visit]bool),
 	}
 }
 
-func (d *Diff) diff(aVal, bVal reflect.Value, path Path) bool {
+// Update records the old and new value of a modified field.
+type Update struct {
+	Old interface{}
+	New interface{}
+}
+
+func (d *Diff) diff(aVal, bVal reflect.Value, path Path, opts *opts) bool {
 	// The array underlying `path` could be modified in subsequent
 	// calls. Make sure we have a local copy.
 	localPath := make(Path, len(path))
@@ -55,15 +70,15 @@ func (d *Diff) diff(aVal, bVal reflect.Value, path Path) bool {
 		return true
 	}
 	if !bVal.IsValid() {
-		d.Modified[&localPath] = nil
+		d.Modified[&localPath] = Update{Old: aVal.Interface(), New: nil}
 		return false
 	} else if !aVal.IsValid() {
-		d.Modified[&localPath] = bVal.Interface()
+		d.Modified[&localPath] = Update{Old: nil, New: bVal.Interface()}
 		return false
 	}
 
 	if aVal.Type() != bVal.Type() {
-		d.Modified[&localPath] = bVal.Interface()
+		d.Modified[&localPath] = Update{Old: aVal.Interface(), New: bVal.Interface()}
 		return false
 	}
 	kind := aVal.Kind()
@@ -105,7 +120,7 @@ func (d *Diff) diff(aVal, bVal reflect.Value, path Path) bool {
 			return true
 		}
 		if aVal.IsNil() || bVal.IsNil() {
-			d.Modified[&localPath] = bVal.Interface()
+			d.Modified[&localPath] = Update{Old: aVal.Interface(), New: bVal.Interface()}
 			return false
 		}
 	}
@@ -116,7 +131,7 @@ func (d *Diff) diff(aVal, bVal reflect.Value, path Path) bool {
 		bLen := bVal.Len()
 		for i := 0; i < min(aLen, bLen); i++ {
 			localPath := append(localPath, SliceIndex(i))
-			if eq := d.diff(aVal.Index(i), bVal.Index(i), localPath); !eq {
+			if eq := d.diff(aVal.Index(i), bVal.Index(i), localPath, opts); !eq {
 				equal = false
 			}
 		}
@@ -141,7 +156,7 @@ func (d *Diff) diff(aVal, bVal reflect.Value, path Path) bool {
 			if !bI.IsValid() {
 				d.Removed[&localPath] = aI.Interface()
 				equal = false
-			} else if eq := d.diff(aI, bI, localPath); !eq {
+			} else if eq := d.diff(aI, bI, localPath, opts); !eq {
 				equal = false
 			}
 		}
@@ -156,26 +171,39 @@ func (d *Diff) diff(aVal, bVal reflect.Value, path Path) bool {
 		}
 	case reflect.Struct:
 		typ := aVal.Type()
-		for i := 0; i < typ.NumField(); i++ {
-			index := []int{i}
-			field := typ.FieldByIndex(index)
-			if field.Tag.Get("testdiff") == "ignore" { // skip fields marked to be ignored
-				continue
-			}
-			localPath := append(localPath, StructField(field.Name))
-			aI := unsafeReflectValue(aVal.FieldByIndex(index))
-			bI := unsafeReflectValue(bVal.FieldByIndex(index))
-			if eq := d.diff(aI, bI, localPath); !eq {
+		// If the field is time.Time, use Equal to compare
+		if typ.String() == "time.Time" {
+			aTime := aVal.Interface().(time.Time)
+			bTime := bVal.Interface().(time.Time)
+			if !aTime.Equal(bTime) {
+				d.Modified[&localPath] = Update{Old: aTime.String(), New: bTime.String()}
 				equal = false
+			}
+		} else {
+			for i := 0; i < typ.NumField(); i++ {
+				index := []int{i}
+				field := typ.FieldByIndex(index)
+				if field.Tag.Get("testdiff") == "ignore" { // skip fields marked to be ignored
+					continue
+				}
+				if _, skip := opts.ignoreField[field.Name]; skip {
+					continue
+				}
+				localPath := append(localPath, StructField(field.Name))
+				aI := unsafeReflectValue(aVal.FieldByIndex(index))
+				bI := unsafeReflectValue(bVal.FieldByIndex(index))
+				if eq := d.diff(aI, bI, localPath, opts); !eq {
+					equal = false
+				}
 			}
 		}
 	case reflect.Ptr:
-		equal = d.diff(aVal.Elem(), bVal.Elem(), localPath)
+		equal = d.diff(aVal.Elem(), bVal.Elem(), localPath, opts)
 	default:
 		if reflect.DeepEqual(aVal.Interface(), bVal.Interface()) {
 			equal = true
 		} else {
-			d.Modified[&localPath] = bVal.Interface()
+			d.Modified[&localPath] = Update{Old: aVal.Interface(), New: bVal.Interface()}
 			equal = false
 		}
 	}
@@ -202,8 +230,9 @@ type visit struct {
 
 // Diff represents a change in a struct.
 type Diff struct {
-	Added, Removed, Modified map[*Path]interface{}
-	visited                  map[visit]bool
+	Added, Removed map[*Path]interface{}
+	Modified       map[*Path]Update
+	visited        map[visit]bool
 }
 
 // Path represents a path to a changed datum.
@@ -243,4 +272,32 @@ type SliceIndex int
 
 func (n SliceIndex) String() string {
 	return fmt.Sprintf("[%d]", n)
+}
+
+type opts struct {
+	ignoreField map[string]struct{}
+}
+
+// Option is an option to specify in diff
+type Option interface {
+	apply(*opts)
+}
+
+// IgnoreStructField return an option of IgnoreFieldOption
+func IgnoreStructField(field string) Option {
+	return IgnoreFieldOption{
+		Field: field,
+	}
+}
+
+// IgnoreFieldOption is an option for specifying a field that does not diff
+type IgnoreFieldOption struct {
+	Field string
+}
+
+func (i IgnoreFieldOption) apply(opts *opts) {
+	if opts.ignoreField == nil {
+		opts.ignoreField = map[string]struct{}{}
+	}
+	opts.ignoreField[i.Field] = struct{}{}
 }

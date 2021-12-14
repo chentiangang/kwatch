@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/api/core/v1"
+	"github.com/chentiangang/xlog"
+
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/cache"
@@ -24,6 +25,8 @@ func (c *KubeWatch) processNextItem() bool {
 
 	// Invoke the method containing the business logic
 	err := c.syncToStdout(key.(string))
+
+	//c.Diff()
 	// Handle the error if something went wrong during the execution of the business logic
 	c.handleErr(err, key)
 	return true
@@ -33,7 +36,7 @@ func (c *KubeWatch) processNextItem() bool {
 // information about the pod to stdout. In case an error happened, it has to simply return the error.
 // The retry logic should not be part of the business logic.
 func (c *KubeWatch) syncToStdout(key string) error {
-	obj, exists, err := c.indexer.GetByKey(key)
+	_, exists, err := c.indexer.GetByKey(key)
 
 	if err != nil {
 		klog.Errorf("Fetching object with key %s from store failed with %v", key, err)
@@ -42,14 +45,16 @@ func (c *KubeWatch) syncToStdout(key string) error {
 
 	if !exists {
 		// Below we will warm up our cache with a Pod, so that we will see a delete for one pod
-		fmt.Printf("Pod %s does not exist anymore\n", key)
-		c.DiffItems()
+		//fmt.Printf("Pod %s does not exist anymore\n", key)
+		c.Diff()
 	} else {
 		// Note that you also have to check the uid if you have a local controlled resource, which
 		// is dependent on the actual instance, to detect that a Pod was recreated with the same name
-		fmt.Printf("Sync/Add/Update for Pod %s\n", obj.(*v1.Pod).GetName())
-		c.DiffItems()
+		//fmt.Printf("Sync/Add/Update for Pod %s\n", obj.(*v1.Pod).GetName())
+		c.Diff()
+
 	}
+	//c.SetPods()
 	return nil
 }
 
@@ -105,5 +110,12 @@ func (c *KubeWatch) Run(workers int, stopCh chan struct{}) {
 
 func (c *KubeWatch) runWorker() {
 	for c.processNextItem() {
+	}
+}
+
+func (c *KubeWatch) Parse() {
+	for i := range c.Log {
+		c.Pods = c.GetPods()
+		xlog.Debug("%s: %s \n", i.Action, i.Key)
 	}
 }
