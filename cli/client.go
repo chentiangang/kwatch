@@ -22,7 +22,6 @@ type KubeWatch struct {
 	clientSet *kubernetes.Clientset
 	Items     []v1.Pod
 	Pods      []Pod
-	Log       chan Data
 	Events    chan Events
 }
 
@@ -86,7 +85,6 @@ func NewClient() KubeWatch {
 		queue:     queue,
 		indexer:   indexer,
 		informer:  informer,
-		Log:       make(chan Data, 1000),
 		Events:    make(chan Events, 1000),
 	}
 }

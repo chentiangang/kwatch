@@ -10,28 +10,28 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k *KubeWatch) SetPods() {
-
-	for _, i := range k.GetItems() {
-		var pod Pod
-		pod.UID = fmt.Sprintf("%s", i.UID)
-		pod.Labels = make(map[string]string, 1)
-		pod.Labels = i.Labels
-		pod.IP = i.Status.HostIP
-		pod.Namespace = i.Namespace
-		pod.Name = i.Name
-
-		for _, j := range i.Status.ContainerStatuses {
-			var container Container
-			container.ID = j.ContainerID
-			//container.State = j.State.String()
-			container.Name = j.Name
-			pod.Containers = append(pod.Containers, container)
-		}
-		//pod.Status = i.Status.String()
-		k.Pods = append(k.Pods, pod)
-	}
-}
+//func (k *KubeWatch) SetPods() {
+//
+//	for _, i := range k.GetItems() {
+//		var pod Pod
+//		pod.UID = fmt.Sprintf("%s", i.UID)
+//		pod.Labels = make(map[string]string, 1)
+//		pod.Labels = i.Labels
+//		pod.IP = i.Status.HostIP
+//		pod.Namespace = i.Namespace
+//		pod.Name = i.Name
+//
+//		for _, j := range i.Status.ContainerStatuses {
+//			var container Container
+//			container.ID = j.ContainerID
+//			//container.State = j.State.String()
+//			container.Name = j.Name
+//			pod.Containers = append(pod.Containers, container)
+//		}
+//		//pod.Status = i.Status.String()
+//		k.Pods = append(k.Pods, pod)
+//	}
+//}
 
 func (k *KubeWatch) GetPods() (pods []Pod) {
 	items := k.GetItems()
@@ -78,7 +78,7 @@ type Events struct {
 }
 
 type Container struct {
-	ID   string `json:"id"`
+	ID   string `json:"id,omitempty"`
 	Pod  string `json:"podName,omitempty"`
 	Name string `json:"name"`
 }
@@ -105,14 +105,8 @@ func (k KubeWatch) Diff() {
 	}
 
 	if addpods != nil {
-		bs, _ := json.Marshal(&addpods)
-		k.Log <- Data{
-			Action: "added",
-			Key:    string(bs),
-		}
-
 		k.Events <- Events{
-			Event:     "added",
+			Event:     "addedPod",
 			EventTime: time.Now().String(),
 			Message:   addpods,
 		}
@@ -128,13 +122,8 @@ func (k KubeWatch) Diff() {
 	}
 
 	if pods != nil {
-		bs, _ := json.Marshal(pods)
-		k.Log <- Data{
-			Action: "removed",
-			Key:    string(bs),
-		}
 		k.Events <- Events{
-			Event:     "removed",
+			Event:     "removedPod",
 			EventTime: time.Now().String(),
 			Message:   pods,
 		}
@@ -158,15 +147,10 @@ func (k KubeWatch) Diff() {
 		}
 	}
 	if removedc != nil {
-		bs, _ := json.Marshal(removedc)
-		k.Log <- Data{
-			Action: "removed container",
-			Key:    string(bs),
-		}
 		k.Events <- Events{
-			Event:     "removed-container",
+			Event:     "removedContainer",
 			EventTime: time.Now().String(),
-			Message:   pods,
+			Message:   removedc,
 		}
 	}
 
@@ -189,13 +173,8 @@ func (k KubeWatch) Diff() {
 	}
 
 	if addedc != nil {
-		bs, _ := json.Marshal(addedc)
-		k.Log <- Data{
-			Action: "added container",
-			Key:    string(bs),
-		}
 		k.Events <- Events{
-			Event:     "added container",
+			Event:     "addedContainer",
 			EventTime: time.Now().String(),
 			Message:   addedc,
 		}
