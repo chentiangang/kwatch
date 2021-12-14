@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -114,8 +115,12 @@ func (c *KubeWatch) runWorker() {
 }
 
 func (c *KubeWatch) Parse() {
-	for i := range c.Log {
+	for i := range c.Events {
 		c.Pods = c.GetPods()
-		xlog.Debug("%s: %s \n", i.Action, i.Key)
+		bs, err := json.Marshal(&i)
+		if err != nil {
+			xlog.Error("%s", err)
+		}
+		xlog.Debug("%s", string(bs))
 	}
 }

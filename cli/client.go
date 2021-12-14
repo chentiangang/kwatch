@@ -23,6 +23,7 @@ type KubeWatch struct {
 	Items     []v1.Pod
 	Pods      []Pod
 	Log       chan Data
+	Events    chan Events
 }
 
 func NewClient() KubeWatch {
@@ -86,5 +87,6 @@ func NewClient() KubeWatch {
 		indexer:   indexer,
 		informer:  informer,
 		Log:       make(chan Data, 1000),
+		Events:    make(chan Events, 1000),
 	}
 }

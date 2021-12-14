@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -70,6 +71,12 @@ type Data struct {
 	New    interface{}
 }
 
+type Events struct {
+	Event     string      `json:"event"`
+	EventTime string      `json:"event_time"`
+	Message   interface{} `json:"message"`
+}
+
 type Container struct {
 	ID   string `json:"id"`
 	Pod  string `json:"podName,omitempty"`
@@ -103,6 +110,12 @@ func (k KubeWatch) Diff() {
 			Action: "added",
 			Key:    string(bs),
 		}
+
+		k.Events <- Events{
+			Event:     "added",
+			EventTime: time.Now().String(),
+			Message:   addpods,
+		}
 	}
 
 	var pods []Pod
@@ -119,6 +132,11 @@ func (k KubeWatch) Diff() {
 		k.Log <- Data{
 			Action: "removed",
 			Key:    string(bs),
+		}
+		k.Events <- Events{
+			Event:     "removed",
+			EventTime: time.Now().String(),
+			Message:   pods,
 		}
 	}
 
@@ -145,6 +163,11 @@ func (k KubeWatch) Diff() {
 			Action: "removed container",
 			Key:    string(bs),
 		}
+		k.Events <- Events{
+			Event:     "removed-container",
+			EventTime: time.Now().String(),
+			Message:   pods,
+		}
 	}
 
 	var addedc []Container
@@ -170,6 +193,11 @@ func (k KubeWatch) Diff() {
 		k.Log <- Data{
 			Action: "added container",
 			Key:    string(bs),
+		}
+		k.Events <- Events{
+			Event:     "added container",
+			EventTime: time.Now().String(),
+			Message:   addedc,
 		}
 	}
 
