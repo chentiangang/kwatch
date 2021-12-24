@@ -2494,6 +2494,8 @@ type ContainerState struct {
 }
 
 // ContainerStatus contains details for the current status of this container.
+
+
 type ContainerStatus struct {
 	// This must be a DNS_LABEL. Each container in a pod must have a unique name.
 	// Cannot be updated.

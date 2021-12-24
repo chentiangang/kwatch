@@ -10,32 +10,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//func (k *KubeWatch) SetPods() {
-//
-//	for _, i := range k.GetItems() {
-//		var pod Pod
-//		pod.UID = fmt.Sprintf("%s", i.UID)
-//		pod.Labels = make(map[string]string, 1)
-//		pod.Labels = i.Labels
-//		pod.IP = i.Status.HostIP
-//		pod.Namespace = i.Namespace
-//		pod.Name = i.Name
-//
-//		for _, j := range i.Status.ContainerStatuses {
-//			var container Container
-//			container.ID = j.ContainerID
-//			//container.State = j.State.String()
-//			container.Name = j.Name
-//			pod.Containers = append(pod.Containers, container)
-//		}
-//		//pod.Status = i.Status.String()
-//		k.Pods = append(k.Pods, pod)
-//	}
-//}
-
 func (k *KubeWatch) GetPods() (pods []Pod) {
 	items := k.GetItems()
 	for _, i := range items {
+
 		var pod Pod
 		pod.UID = fmt.Sprintf("%s", i.UID)
 		pod.Labels = make(map[string]string, 1)
@@ -64,22 +42,16 @@ type Pod struct {
 	Containers []Container       `json:"containers"`
 }
 
-type Data struct {
-	Action string
-	Key    string
-	Old    interface{}
-	New    interface{}
-}
-
 type Events struct {
-	Event     string      `json:"event"`
-	EventTime string      `json:"event_time"`
-	Message   interface{} `json:"message"`
+	Event         string      `json:"event"`
+	ConfigChanged bool        `json:"config_changed"`
+	EventTime     string      `json:"event_time"`
+	Message       interface{} `json:"message"`
 }
 
 type Container struct {
 	ID   string `json:"id,omitempty"`
-	Pod  string `json:"podName,omitempty"`
+	Pod  string `json:"pod_name,omitempty"`
 	Name string `json:"name"`
 }
 
@@ -94,6 +66,7 @@ func (k KubeWatch) Diff() {
 
 	var addpods []Pod
 	for _, i := range k.AddedPod() {
+
 		if i == "" {
 			continue
 		}
