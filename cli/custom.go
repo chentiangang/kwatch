@@ -63,7 +63,7 @@ func (k *KubeWatch) GetItems() []v1.Pod {
 //
 
 func (k KubeWatch) Diff() {
-
+	isChanged := k.configIsChanged()
 	var addpods []Pod
 	for _, i := range k.AddedPod() {
 
@@ -82,7 +82,7 @@ func (k KubeWatch) Diff() {
 			Event:         "addedPod",
 			EventTime:     time.Now().String(),
 			Message:       addpods,
-			ConfigChanged: k.configIsChanged(),
+			ConfigChanged: isChanged,
 		}
 	}
 
@@ -100,7 +100,7 @@ func (k KubeWatch) Diff() {
 			Event:         "removedPod",
 			EventTime:     time.Now().String(),
 			Message:       pods,
-			ConfigChanged: k.configIsChanged(),
+			ConfigChanged: isChanged,
 		}
 	}
 
@@ -126,7 +126,7 @@ func (k KubeWatch) Diff() {
 			Event:         "removedContainer",
 			EventTime:     time.Now().String(),
 			Message:       removedc,
-			ConfigChanged: k.configIsChanged(),
+			ConfigChanged: isChanged,
 		}
 	}
 
@@ -153,7 +153,7 @@ func (k KubeWatch) Diff() {
 			Event:         "addedContainer",
 			EventTime:     time.Now().String(),
 			Message:       addedc,
-			ConfigChanged: k.configIsChanged(),
+			ConfigChanged: isChanged,
 		}
 	}
 
