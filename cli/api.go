@@ -117,6 +117,8 @@ func (c *KubeWatch) runWorker() {
 func (c *KubeWatch) Parse() {
 	for i := range c.Events {
 		c.Pods = c.GetPods()
+		c.Deployment = c.GetDeployment()
+
 		bs, err := json.Marshal(&i)
 		if err != nil {
 			xlog.Error("%s", err)

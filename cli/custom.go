@@ -79,9 +79,10 @@ func (k KubeWatch) Diff() {
 
 	if addpods != nil {
 		k.Events <- Events{
-			Event:     "addedPod",
-			EventTime: time.Now().String(),
-			Message:   addpods,
+			Event:         "addedPod",
+			EventTime:     time.Now().String(),
+			Message:       addpods,
+			ConfigChanged: k.configIsChanged(),
 		}
 	}
 
@@ -96,9 +97,10 @@ func (k KubeWatch) Diff() {
 
 	if pods != nil {
 		k.Events <- Events{
-			Event:     "removedPod",
-			EventTime: time.Now().String(),
-			Message:   pods,
+			Event:         "removedPod",
+			EventTime:     time.Now().String(),
+			Message:       pods,
+			ConfigChanged: k.configIsChanged(),
 		}
 	}
 
@@ -121,9 +123,10 @@ func (k KubeWatch) Diff() {
 	}
 	if removedc != nil {
 		k.Events <- Events{
-			Event:     "removedContainer",
-			EventTime: time.Now().String(),
-			Message:   removedc,
+			Event:         "removedContainer",
+			EventTime:     time.Now().String(),
+			Message:       removedc,
+			ConfigChanged: k.configIsChanged(),
 		}
 	}
 
@@ -147,9 +150,10 @@ func (k KubeWatch) Diff() {
 
 	if addedc != nil {
 		k.Events <- Events{
-			Event:     "addedContainer",
-			EventTime: time.Now().String(),
-			Message:   addedc,
+			Event:         "addedContainer",
+			EventTime:     time.Now().String(),
+			Message:       addedc,
+			ConfigChanged: k.configIsChanged(),
 		}
 	}
 

@@ -7,6 +7,7 @@ import (
 func main() {
 	kubewatch := cli.NewClient()
 	kubewatch.Pods = kubewatch.GetPods()
+	kubewatch.Deployment = kubewatch.GetDeployment()
 	// Now let's start the controller
 	stop := make(chan struct{})
 	defer close(stop)

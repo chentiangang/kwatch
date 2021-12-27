@@ -1,8 +1,13 @@
 package cli
 
 import (
+	"context"
 	"flag"
 	"path/filepath"
+
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	appv1 "k8s.io/api/apps/v1"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -16,12 +21,13 @@ import (
 )
 
 type KubeWatch struct {
-	indexer   cache.Indexer
-	queue     workqueue.RateLimitingInterface
-	informer  cache.Controller
-	clientSet *kubernetes.Clientset
-	Pods      []Pod
-	Events    chan Events
+	indexer    cache.Indexer
+	queue      workqueue.RateLimitingInterface
+	informer   cache.Controller
+	clientSet  *kubernetes.Clientset
+	Pods       []Pod
+	Events     chan Events
+	Deployment *appv1.Deployment
 }
 
 func NewClient() KubeWatch {
@@ -86,4 +92,11 @@ func NewClient() KubeWatch {
 		informer:  informer,
 		Events:    make(chan Events, 1000),
 	}
+}
+
+func (c *KubeWatch) GetDeployment() *appv1.Deployment {
+	deploymentsClient := c.clientSet.AppsV1().Deployments(v1.NamespaceDefault)
+	Deployment, _ := deploymentsClient.Get(context.TODO(), "nginx-deployment", meta_v1.GetOptions{})
+
+	return Deployment
 }

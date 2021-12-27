@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/chentiangang/xlog v0.0.0-20210203034958-c6b28d65a157
+	github.com/d4l3k/messagediff v1.2.1
 	k8s.io/api v0.22.4
 	k8s.io/apimachinery v0.22.4
 	k8s.io/client-go v0.22.4
