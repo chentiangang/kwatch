@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/chentiangang/xlog"
-
+	"github.com/d4l3k/messagediff"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/cache"
@@ -117,7 +117,11 @@ func (c *KubeWatch) runWorker() {
 func (c *KubeWatch) Parse() {
 	for i := range c.Events {
 		c.Pods = c.GetPods()
-		c.Deployment = c.GetDeployment()
+		if c.IsRunning() {
+			c.Spec = i.Spec
+		}
+		_, equal := messagediff.PrettyDiff(i.Spec, c.Spec)
+		i.ConfigChanged = !equal
 
 		bs, err := json.Marshal(&i)
 		if err != nil {
@@ -125,4 +129,17 @@ func (c *KubeWatch) Parse() {
 		}
 		xlog.Debug("%s", string(bs))
 	}
+}
+
+//
+func (c *KubeWatch) IsRunning() bool {
+	for _, i := range c.GetPods() {
+		for _, j := range i.Containers {
+			if j.State == "nil" || j.State == "" {
+				return false
+			}
+		}
+
+	}
+	return true
 }

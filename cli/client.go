@@ -21,13 +21,13 @@ import (
 )
 
 type KubeWatch struct {
-	indexer    cache.Indexer
-	queue      workqueue.RateLimitingInterface
-	informer   cache.Controller
-	clientSet  *kubernetes.Clientset
-	Pods       []Pod
-	Events     chan Events
-	Deployment *appv1.Deployment
+	indexer   cache.Indexer
+	queue     workqueue.RateLimitingInterface
+	informer  cache.Controller
+	clientSet *kubernetes.Clientset
+	Pods      []Pod
+	Events    chan Events
+	Spec      appv1.DeploymentSpec
 }
 
 func NewClient() KubeWatch {
@@ -94,9 +94,8 @@ func NewClient() KubeWatch {
 	}
 }
 
-func (c *KubeWatch) GetDeployment() *appv1.Deployment {
+func (c *KubeWatch) GetDeploymentSpec() appv1.DeploymentSpec {
 	deploymentsClient := c.clientSet.AppsV1().Deployments(v1.NamespaceDefault)
 	Deployment, _ := deploymentsClient.Get(context.TODO(), "nginx-deployment", meta_v1.GetOptions{})
-
-	return Deployment
+	return Deployment.Spec
 }

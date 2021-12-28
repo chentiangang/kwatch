@@ -1,7 +1,5 @@
 package cli
 
-import "github.com/d4l3k/messagediff"
-
 func (k KubeWatch) changed() bool {
 	if k.PodsJson() == k.GetPodsJson() {
 		return false
@@ -106,7 +104,7 @@ func (k KubeWatch) RemovedContainer() (removed []string) {
 	return removed
 }
 
-func (k *KubeWatch) configIsChanged() bool {
-	_, equal := messagediff.PrettyDiff(k.Deployment.Spec, k.GetDeployment().Spec)
-	return equal
-}
+//func (k *KubeWatch) configIsChanged() bool {
+//	_, equal := messagediff.PrettyDiff(k.Deployment.Spec, k.GetDeploymentSpec())
+//	return equal
+//}

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	appv1 "k8s.io/api/apps/v1"
+
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -26,6 +28,7 @@ func (k *KubeWatch) GetPods() (pods []Pod) {
 			var container Container
 			container.ID = j.ContainerID
 			container.Name = j.Name
+			container.State = j.State.Running.String()
 			pod.Containers = append(pod.Containers, container)
 		}
 		pods = append(pods, pod)
@@ -43,16 +46,18 @@ type Pod struct {
 }
 
 type Events struct {
-	Event         string      `json:"event"`
-	ConfigChanged bool        `json:"config_changed"`
-	EventTime     string      `json:"event_time"`
-	Message       interface{} `json:"message"`
+	Event         string               `json:"event"`
+	ConfigChanged bool                 `json:"config_changed"`
+	EventTime     string               `json:"event_time"`
+	Spec          appv1.DeploymentSpec `json:"-"`
+	Message       interface{}          `json:"message"`
 }
 
 type Container struct {
-	ID   string `json:"id,omitempty"`
-	Pod  string `json:"pod_name,omitempty"`
-	Name string `json:"name"`
+	ID    string `json:"id,omitempty"`
+	Pod   string `json:"pod_name,omitempty"`
+	Name  string `json:"name"`
+	State string `json:"state"`
 }
 
 func (k *KubeWatch) GetItems() []v1.Pod {
@@ -63,7 +68,6 @@ func (k *KubeWatch) GetItems() []v1.Pod {
 //
 
 func (k KubeWatch) Diff() {
-	isChanged := k.configIsChanged()
 	var addpods []Pod
 	for _, i := range k.AddedPod() {
 
@@ -79,10 +83,10 @@ func (k KubeWatch) Diff() {
 
 	if addpods != nil {
 		k.Events <- Events{
-			Event:         "addedPod",
-			EventTime:     time.Now().String(),
-			Message:       addpods,
-			ConfigChanged: isChanged,
+			Event:     "addedPod",
+			EventTime: time.Now().String(),
+			Message:   addpods,
+			Spec:      k.GetDeploymentSpec(),
 		}
 	}
 
@@ -97,10 +101,10 @@ func (k KubeWatch) Diff() {
 
 	if pods != nil {
 		k.Events <- Events{
-			Event:         "removedPod",
-			EventTime:     time.Now().String(),
-			Message:       pods,
-			ConfigChanged: isChanged,
+			Event:     "removedPod",
+			EventTime: time.Now().String(),
+			Message:   pods,
+			Spec:      k.GetDeploymentSpec(),
 		}
 	}
 
@@ -123,10 +127,10 @@ func (k KubeWatch) Diff() {
 	}
 	if removedc != nil {
 		k.Events <- Events{
-			Event:         "removedContainer",
-			EventTime:     time.Now().String(),
-			Message:       removedc,
-			ConfigChanged: isChanged,
+			Event:     "removedContainer",
+			EventTime: time.Now().String(),
+			Spec:      k.GetDeploymentSpec(),
+			Message:   removedc,
 		}
 	}
 
@@ -150,10 +154,10 @@ func (k KubeWatch) Diff() {
 
 	if addedc != nil {
 		k.Events <- Events{
-			Event:         "addedContainer",
-			EventTime:     time.Now().String(),
-			Message:       addedc,
-			ConfigChanged: isChanged,
+			Event:     "addedContainer",
+			EventTime: time.Now().String(),
+			Spec:      k.GetDeploymentSpec(),
+			Message:   addedc,
 		}
 	}
 
