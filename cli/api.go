@@ -117,11 +117,14 @@ func (c *KubeWatch) runWorker() {
 func (c *KubeWatch) Parse() {
 	for i := range c.Events {
 		c.Pods = c.GetPods()
-		if c.IsRunning() {
-			c.Spec = i.Spec
-		}
 		_, equal := messagediff.PrettyDiff(i.Spec, c.Spec)
 		i.ConfigChanged = !equal
+		if !equal {
+			if c.IsRunning() {
+				c.Spec = i.Spec
+			}
+
+		}
 
 		bs, err := json.Marshal(&i)
 		if err != nil {
