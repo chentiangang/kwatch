@@ -103,8 +103,3 @@ func (k KubeWatch) RemovedContainer() (removed []string) {
 	}
 	return removed
 }
-
-//func (k *KubeWatch) configIsChanged() bool {
-//	_, equal := messagediff.PrettyDiff(k.Deployment.Spec, k.GetDeploymentSpec())
-//	return equal
-//}
